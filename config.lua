@@ -150,6 +150,13 @@ Config.PhoneApplications = {
     },
     ["gallery"] = {
         app = "gallery",
+        color = "#27ae60",
+        icon = "fas fa-images",
+        tooltipText = "Gallery",
+        tooltipPos = "right",
+        job = false,
+        blockedjobs = {},
+        slot = 14,
         color = "#AC1D2C",
         icon = "fas fa-images",
         tooltipText = "Gallery",
@@ -161,6 +168,11 @@ Config.PhoneApplications = {
     },
     ["camera"] = {
         app = "camera",
+        color = "#cccc33",
+        icon = "fas fa-camera-retro",
+        tooltipText = "Camera",
+        tooltipPos = "right",
+
         color = "#AC1D2C",
         icon = "fas fa-camera",
         tooltipText = "Camera",
@@ -183,10 +195,11 @@ Config.StoreApps = {
         style = "";
         job = false,
         blockedjobs = {},
-        slot = 15,
+        slot = 16,
         Alerts = 0,
         password = true,
         creator = "QBCore",
         title = "Territory",
     },
+ 
 }
