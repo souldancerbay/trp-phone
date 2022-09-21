@@ -6,12 +6,71 @@ local Hashtags = {}
 local Calls = {}
 local Adverts = {}
 local GeneratedPlates = {}
+local TWData = {}
+local WebHook = "" -- PUT THE WEBHOOK HERE!
+TWData.NewTweets = {}
+TWData.TweetData = {}
+
+Citizen.CreateThread(function()
+    Wait(500)
+    local LoadJson = json.decode(LoadResourceFile(GetCurrentResourceName(), "ad.json"))
+    Adverts = LoadJson
+    TriggerClientEvent('qb-phone:client:Adverts', -1, Adverts)
+
+end)
+Citizen.CreateThread(function()
+    Wait(500)
+    local LoadResource = json.decode(LoadResourceFile(GetCurrentResourceName(), 'tw.json'))
+    TWData.NewTweets = LoadResource.NewTweets
+    TWData.TweetData = LoadResource.TweetData
+end)
+
+RegisterServerEvent('qb-phone:server:DeleteAdvert')
+AddEventHandler('qb-phone:server:DeleteAdvert', function(citizenid)
+    local src = source
+    local Player = QBCore.Functions.GetPlayer(source)
+    local MyCitizenid = Player.PlayerData.citizenid
+    local Citizenid = citizenid
+    if Citizenid == MyCitizenid then
+    Adverts[Citizenid] = nil
+    UpdateJsonAdv(Adverts)
+    end
+end)
+function UpdateJsonAdv(data)
+    TriggerClientEvent("qb-phone:client:Adverts",-1,data)
+    SaveResourceFile(GetCurrentResourceName(), "ad.json", json.encode(data), -1)
+end
+QBCore.Functions.CreateCallback("qb-phone:server:GetWebhook",function(source,cb)
+	if WebHook ~= "" then
+		cb(WebHook)			
+	else
+		cb(nil)		
+	end
+	
+end)
+
 local WebHook = ""
 local bannedCharacters = {'%','$',';'}
 local TWData = {}
 
 -- Functions
 
+    if Adverts[CitizenId] ~= nil then
+        Adverts[CitizenId].message = msg.message
+        Adverts[CitizenId].name = "@"..Player.PlayerData.charinfo.firstname..""..Player.PlayerData.charinfo.lastname
+        Adverts[CitizenId].number = Player.PlayerData.charinfo.phone
+        Adverts[CitizenId].url = msg.url
+    else
+        Adverts[CitizenId] = {
+            message = msg.message,
+            name = "@"..Player.PlayerData.charinfo.firstname..""..Player.PlayerData.charinfo.lastname,
+            number = Player.PlayerData.charinfo.phone,
+            url = msg.url
+        }
+    end
+    SaveResourceFile(GetCurrentResourceName(), "ad.json", json.encode(Adverts), -1)
+    TriggerClientEvent('qb-phone:client:UpdateAdverts', -1, Adverts, "@"..Player.PlayerData.charinfo.firstname..""..Player.PlayerData.charinfo.lastname)
+end)
 local function GetOnlineStatus(number)
     local Target = QBCore.Functions.GetPlayerByPhone(number)
     local retval = false
@@ -84,6 +143,19 @@ local function SplitStringToArray(string)
     end
     return retval
 end
+RegisterServerEvent('qb-phone:server:DeleteTwt')
+AddEventHandler('qb-phone:server:DeleteTwt',function(id)
+
+    for k,v in pairs(TWData.NewTweets) do
+        print(TWData.NewTweets[k].tweetId)
+        if TWData.NewTweets[k].tweetId == id then
+             TWData.NewTweets[k] = nil
+        end
+    end
+ 
+ TriggerClientEvent("qb-phone:client:UpdateTweets1",-1,TWData.NewTweets)
+        SaveResourceFile(GetCurrentResourceName(), "tw.json", json.encode(TWData.NewTweets), -1)
+end)
 
 local function GenerateOwnerName()
     local names = {
@@ -218,10 +290,13 @@ QBCore.Functions.CreateCallback('qb-phone:server:GetPhoneData', function(source,
         if MentionedTweets[Player.PlayerData.citizenid] ~= nil then
             PhoneData.MentionedTweets = MentionedTweets[Player.PlayerData.citizenid]
         end
-
+        if TWData.NewTweets ~= nil and next(TWData.NewTweets) ~= nil then
+            PhoneData.Tweets = TWData.NewTweets
+        end
         if Hashtags ~= nil and next(Hashtags) ~= nil then
             PhoneData.Hashtags = Hashtags
         end
+        local mails = exports.ghmattimysql:executeSync('SELECT * FROM player_mails WHERE citizenid=@citizenid ORDER BY `date` ASC', {['@citizenid'] = Player.PlayerData.citizenid})
 
         local Tweets = MySQL.query.await('SELECT * FROM phone_tweets WHERE `date` > NOW() - INTERVAL ? hour', {Config.TweetDuration})
 
@@ -791,6 +866,32 @@ RegisterNetEvent('qb-phone:server:DeleteTweet', function(tweetId)
         MySQL.query.await('DELETE FROM phone_tweets WHERE tweetId = ?', {TID})
         delete = true
     end
+    SetTimeout(100, function()
+        cb(Chat)
+    end)
+end)
+QBCore.Functions.CreateCallback("qb-phone:server:GetInfo",function(source,cb,number)
+    local Player = QBCore.Functions.GetPlayerByPhone(number)
+    if Player ~= nil then
+    cb({name = Player.PlayerData.charinfo.firstname,number = number})
+    else
+        local query = '%'..number..'%'
+        local result = exports.ghmattimysql:executeSync('SELECT * FROM players WHERE charinfo LIKE @query', {['@query'] = query})
+        local MetaData = json.decode(result[1].metadata)
+        cb({name = number,number = number})
+    end
+end)
+
+
+QBCore.Functions.CreateCallback('qb-phone:server:GetPicture', function(source, cb, number)
+    local Player = QBCore.Functions.GetPlayerByPhone(number)
+    local Picture = nil
+
+    local query = '%'..number..'%'
+    local result = exports.ghmattimysql:executeSync('SELECT * FROM players WHERE charinfo LIKE @query', {['@query'] = query})
+    if result[1] ~= nil then
+        local MetaData = json.decode(result[1].metadata)
+
 
     if delete then
         for k, _ in pairs(TWData) do
@@ -802,6 +903,13 @@ RegisterNetEvent('qb-phone:server:DeleteTweet', function(tweetId)
     end
 end)
 
+RegisterServerEvent('qb-phone:server:UpdateTweets')
+AddEventHandler('qb-phone:server:UpdateTweets', function(NewTweets, TweetData)
+    TWData.NewTweets = NewTweets
+    TWData.TweetData = TweetData
+    local src = source
+    SaveResourceFile(GetCurrentResourceName(), 'tw.json', json.encode(TWData), -1)
+    TriggerClientEvent('qb-phone:client:UpdateTweets', -1, src, TWData.NewTweets, TWData.TweetData)
 RegisterNetEvent('qb-phone:server:UpdateTweets', function(NewTweets, TweetData)
     local src = source
     if Config.Linux then

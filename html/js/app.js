@@ -12,7 +12,7 @@ QB.Phone.ContactColors = {
     4: "#1abc9c",
     5: "#9c88ff",
 }
-
+let up = false
 QB.Phone.Data = {
     currentApplication: null,
     PlayerData: {},
@@ -321,6 +321,8 @@ QB.Phone.Functions.ToggleApp = function(app, show) {
 }
 
 QB.Phone.Functions.Close = function() {
+
+     if (QB.Phone.Data.currentApplication == "meos") {
 
     if (QB.Phone.Data.currentApplication == "whatsapp") {
         setTimeout(function(){
@@ -685,4 +687,46 @@ $(document).ready(function(){
                 break;
         }
     })
+});
+
+$(document).on('keydown', function() {
+    switch(event.keyCode) {
+        case 27: // ESCAPE
+        if (up){
+            $('#popup').fadeOut('slow');
+            $('.popupclass').fadeOut('slow');
+            $('.popupclass').html("");
+        }else{
+            QB.Phone.Functions.Close();
+        }
+           
+            break;
+    }
+});
+QB.Screen.popUp = function(source){
+    if(!up){
+        $('#popup').fadeIn('slow');
+        $('.popupclass').fadeIn('slow');
+        $('<img  src='+source+' style = "width:100%; height: 100%;">').appendTo('.popupclass')
+        up = true
+    }
+}
+QB.Screen.popDown = function(){
+    if(up){
+            $('#popup').fadeOut('slow');
+            $('.popupclass').fadeOut('slow');
+            $('.popupclass').html("");
+        up = false
+    }
+   
+
+}
+$('#popup').on('click', function(){
+    $('#popup').fadeOut('slow');
+    $('.popupclass').fadeOut('slow');
+    $('.popupclass').html("");
+    up = false
+});
+// QB.Phone.Functions.Open();
+
 });

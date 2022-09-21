@@ -24,11 +24,18 @@ Advanced Phone for QB-Core Framework :iphone:
 - [qb-policejob](https://github.com/qbcore-framework/qb-policejob) - MEOS, handcuff check etc. 
 - [qb-crypto](https://github.com/qbcore-framework/qb-crypto) - Crypto currency trading 
 - [qb-lapraces](https://github.com/qbcore-framework/qb-lapraces) - Creating routes and racing 
+
+- [qb-houses](https://github.com/qbcore-framework/qb-houses) - House and key management 
+- [qb-garages](https://github.com/qbcore-framework/qb-garages) - 
+- [qb-banking](https://github.com/qbcore-framework/qb-banking) - For banking
+- [Screenshot Basic](https://github.com/citizenfx/screenshot-basic) - For photo and camera
+
 - [qb-houses](https://github.com/qbcore-framework/qb-houses) - House and Key Management App
 - [qb-garages](https://github.com/qbcore-framework/qb-garages) - For Garage App
 - [qb-banking](https://github.com/qbcore-framework/qb-banking) - For Banking App
 - [screenshot-basic](https://github.com/citizenfx/screenshot-basic) - For Taking Photos
 - A Webhook for hosting photos (Discord or Imgur can provide this)
+
 
 
 ## Screenshots

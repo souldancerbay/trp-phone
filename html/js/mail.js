@@ -1,4 +1,5 @@
 var OpenedMail = null;
+let urlAdv = null;
 
 $(document).on('click', '.mail', function(e){
     e.preventDefault();
@@ -29,6 +30,7 @@ $(document).on('click', '.mail-back', function(e){
 });
 
 $(document).on('click', '#accept-mail', function(e){
+
     e.preventDefault();
     var MailData = $("#"+OpenedMail).data('MailData');
     $.post('https://qb-phone/AcceptMailButton', JSON.stringify({
@@ -42,6 +44,17 @@ $(document).on('click', '#accept-mail', function(e){
     $(".opened-mail").animate({
         left: -30+"vh"
     }, 300);
+});
+
+
+$(document).on('click','.advimage', function (){
+    let source = $(this).attr('src')
+    QB.Screen.popUp(source);
+});
+
+$('#close').on('click', function(){
+    let source = $('.advimage').attr('src')
+    QB.Screen.popDown(source);
 });
 
 $(document).on('click', '#remove-mail', function(e){
@@ -156,6 +169,9 @@ $(document).on('click', '#new-advert-back', function(e){
 
 $(document).on('click', '#new-advert-submit', function(e){
     e.preventDefault();
+
+let picture = $('#advert-new-url').val()
+
     var Advert = $(".new-advert-textarea").val();
     let picture = $('#advert-new-url').val();
 
@@ -177,6 +193,11 @@ $(document).on('click', '#new-advert-submit', function(e){
                 url: picture
             }));
         }
+
+            
+         
+        $('#advert-new-url').val("")
+         $(".new-advert-textarea").val("");
         $('#advert-new-url').val("")
         $(".new-advert-textarea").val("");
     } else {
@@ -184,11 +205,70 @@ $(document).on('click', '#new-advert-submit', function(e){
     }
 });
 
+$(document).on('click','#new-advert-photo',function(e){
+    e.preventDefault();
+
+    $.post('https://qb-phone/GetImage',function(url){
+          if(url){
+            $('#advert-new-url').val(url)
+          }
+        })
+        QB.Phone.Functions.Close();
+}) 
+$(document).on('click','.advert-number',function(e){
+    e.preventDefault();
+    let source = $(this).attr("data-number")
+    if (source !== QB.Phone.Data.PlayerData.charinfo.phone) {
+        $.post('https://qb-phone/GetInformation', JSON.stringify({phone: source}), function(data){
+            $.post('https://qb-phone/GetWhatsappChat', JSON.stringify({phone: source}), function(chat){
+                QB.Phone.Functions.SetupChatMessages(chat, {
+                    name: data.name,
+                    number: data.number
+                });
+
+            });
+            $('.phone-application-container').animate({
+                top: -160+"%"
+            });
+            QB.Phone.Functions.HeaderTextColor("white", 400);
+            setTimeout(function(){
+                $('.phone-application-container').animate({
+                    top: 0+"%"
+                });
+        
+                QB.Phone.Functions.ToggleApp("phone", "none");
+                QB.Phone.Functions.ToggleApp("whatsapp", "block");
+                QB.Phone.Data.currentApplication = "whatsapp";
+                $('.whatsapp-openedchat-messages').animate({scrollTop: 9999}, 150);
+                $(".whatsapp-openedchat").css({"display":"block"});
+                $(".whatsapp-openedchat").css({left: 0+"vh"});
+                $(".whatsapp-chats").animate({left: 30+"vh"},100, function(){
+                $(".whatsapp-chats").css({"display":"none"});
+                });
+            }, 400)
+            QB.Phone.Functions.ToggleApp(QB.Phone.Data.currentApplication,"none")
+        })
+       
+    } else {
+        QB.Phone.Notifications.Add("fa fa-phone-alt", "Phone", "You can't whatsapp yourself..", "default", 3500);
+    }
+
+})
 QB.Phone.Functions.RefreshAdverts = function(Adverts) {
     $("#advert-header-name").html("@"+QB.Phone.Data.PlayerData.charinfo.firstname+""+QB.Phone.Data.PlayerData.charinfo.lastname+" | "+QB.Phone.Data.PlayerData.charinfo.phone);
     if (Adverts.length > 0 || Adverts.length == undefined) {
         $(".advert-list").html("");
+
         $.each(Adverts, function(i, advert){
+            
+            if (advert.url){
+                var element = '<div class="advert"><span class="advert-sender">'+advert.name+'</span><span class="advert-number" data-number="'+advert.number+'"> | '+advert.number+'</span><p>'+advert.message+'</p></br><img class="advimage" src='+advert.url +' style=" border-radius:4px; width: 95%; position:relative; z-index: 1; right:1px;height: auto; bottom:1vh;"></br><span><div class="adv-icon"></div> </span></div>';
+            }else{
+                var element = '<div class="advert"><span class="advert-sender">'+advert.name+'</span><span class="advert-number" data-number="'+advert.number+'"> | '+advert.number+'</span><p>'+advert.message+'</p>';
+            }
+            $(".advert-list").append(element);
+            if (advert.citizenid === QB.Phone.Data.PlayerData.citizenid){
+                $(".advert").append('<span><div class="adv-icon"><div id="adv-whataspp"><i class="fas fa-trash"style="font-size: 2.0rem;" id = "adv-delete"></i> </div></div>')
             var clean = DOMPurify.sanitize(advert.message , {
                 ALLOWED_TAGS: [],
                 ALLOWED_ATTR: []
@@ -211,8 +291,22 @@ QB.Phone.Functions.RefreshAdverts = function(Adverts) {
     } else {
         $(".advert-list").html("");
         var element = '<div class="advert"><span class="advert-sender">There are no advertisements yet!</span></div>';
+        $(".advert-number").append(element);
         $(".advert-list").append(element);
     }
+ 
+}
+$(document).on('click','#adv-delete',function(e){
+    e.preventDefault();
+    $.post('https://qb-phone/DeleteAdvert', JSON.stringify({
+                citizenid: QB.Phone.Data.PlayerData.citizenid
+            }),function(){
+                setTimeout(function(){
+                    QB.Phone.Notifications.Add("fas fa-ad", "Advertisement", "The Adv was deleted", "#ff8f1a", 2000);
+                },400)
+               
+            });
+})
 }
 
 $(document).on('click','#adv-delete',function(e){

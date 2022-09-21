@@ -71,6 +71,7 @@ $(document).on('click', '#myhouse-option-keys', function(e){
         $.each(CurrentHouseData.keyholders, function(i, keyholder){
             if (keyholder !== null && keyholder !== undefined) {
                 var elem;
+                   if (keyholder.citizenid !== QB.Phone.Data.PlayerData.citizenid)  {
                 if (keyholder.citizenid !== QB.Phone.Data.PlayerData.citizenid) {
                     elem = '<div class="house-key" id="holder-'+i+'"><span class="house-key-holder">' + keyholder.charinfo.firstname + ' ' + keyholder.charinfo.lastname + '</span> <div class="house-key-delete"><i class="fas fa-trash"></i></div> </div>';
                 } else {

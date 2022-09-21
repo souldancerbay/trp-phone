@@ -2,7 +2,7 @@ fx_version 'cerulean'
 game 'gta5'
 
 description 'QB-Phone'
-version '1.0.0'
+version '1.1.0'
 
 ui_page 'html/index.html'
 
@@ -24,6 +24,7 @@ server_scripts {
 
 files {
     'html/*.html',
+    'html/build/*.js',
     'html/js/*.js',
     'html/img/*.png',
     'html/css/*.css',
