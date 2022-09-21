@@ -81,7 +81,7 @@ $(document).on('click', '.person-search-result', function(e){
         appartementData = ClickedPersonData.appartmentdata;
     }
 
-    var OpenElement = '<div class="person-search-result-name">Name: '+ClickedPersonData.firstname+' '+ClickedPersonData.lastname+'</div> <div class="person-search-result-bsn">CSN: '+ClickedPersonData.citizenid+'</div> <div class="person-opensplit"></div> &nbsp; <div class="person-search-result-dob">Birth Date: '+ClickedPersonData.birthdate+'</div> <div class="person-search-result-number">Phone number: '+ClickedPersonData.phone+'</div> <div class="person-search-result-nationality">Nationality: '+ClickedPersonData.nationality+'</div> <div class="person-search-result-gender">Gender: '+Gender+'</div> &nbsp; <div class="person-search-result-apartment"><span id="'+ClickedPersonId+'">Apartment: '+appartementData.label+'</span> <i class="fas fa-map-marker-alt appartment-adress-location" id="'+ClickedPersonId+'"></i></div> &nbsp; <div class="person-search-result-warned">Gesignaleerd: '+IsWarrant+'</div> <div class="person-search-result-driverslicense">Drivers License: '+HasLicense+'</div>';
+    var OpenElement = '<div class="person-search-result-name">Name: '+ClickedPersonData.firstname+' '+ClickedPersonData.lastname+'</div> <div class="person-search-result-bsn">CSN: '+ClickedPersonData.citizenid+'</div> <div class="person-opensplit"></div> &nbsp; <div class="person-search-result-dob">Birth Date: '+ClickedPersonData.birthdate+'</div> <div class="person-search-result-number">Phone number: '+ClickedPersonData.phone+'</div> <div class="person-search-result-nationality">Nationality: '+ClickedPersonData.nationality+'</div> <div class="person-search-result-gender">Gender: '+Gender+'</div> &nbsp; <div class="person-search-result-apartment"><span id="'+ClickedPersonId+'">Apartment: '+appartementData.label+'</span> <i class="fas fa-map-marker-alt appartment-adress-location" id="'+ClickedPersonId+'"></i></div> &nbsp; <div class="person-search-result-warned">Signaled: '+IsWarrant+'</div> <div class="person-search-result-driverslicense">Drivers License: '+HasLicense+'</div>';
 
     if (OpenedPerson === null) {
         $(ClickedPerson).html(OpenElement)
@@ -309,12 +309,16 @@ $(document).on('click', '.meos-recent-alert', function(e){
     e.preventDefault();
     var alertData = $(this).data("alertData");
 
-    if (alertData.coords != undefined && alertData.coords != null) {
-        $.post('https://qb-phone/SetAlertWaypoint', JSON.stringify({
-            alert: alertData,
-        }));
-    } else {
-        QB.Phone.Notifications.Add("politie", "MDT", "This alert doesn't have a GPS location!");
+    if (alertData != undefined){
+        if (alertData.coords != undefined && alertData.coords != null) {
+            $.post('https://qb-phone/SetAlertWaypoint', JSON.stringify({
+                alert: alertData,
+            }));
+        } else {
+            QB.Phone.Notifications.Add("politie", "MDT", "This alert doesn't have a GPS location!");
+        }
+    }else {
+        QB.Phone.Notifications.Add("politie", "MDT", "There are no alerts available.");
     }
 });
 
