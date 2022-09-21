@@ -1,5 +1,6 @@
 var WhatsappSearchActive = false;
-var OpenedChatPicture = null;
+var OpenedChatPicture = null;var ExtraButtonsOpen = false;
+
 $(document).ready(function(){
  
     $("#whatsapp-search-input").on("keyup", function() {
@@ -42,7 +43,7 @@ $(document).on('click', '.whatsapp-chat', function(e){
     $(".whatsapp-openedchat").animate({
         left: 0+"vh"
     },200);
-    
+
     $(".whatsapp-chats").animate({
         left: 30+"vh"
     },200, function(){
@@ -92,7 +93,7 @@ QB.Phone.Functions.GetLastMessage = function(messages) {
         var msgData = msg[msg.length - 1];
         LastMessageData.time = msgData.time
         LastMessageData.message = DOMPurify.sanitize(msgData.message , {
-            ALLOWED_TAGS: [], 
+            ALLOWED_TAGS: [],
             ALLOWED_ATTR: []
         });
         if(LastMessageData.message == '') 'Hmm, I shouldn\'t be able to do this...'
@@ -120,7 +121,7 @@ QB.Phone.Functions.LoadWhatsappChats = function(chats) {
         }
         var LastMessage = QB.Phone.Functions.GetLastMessage(chat.messages);
         var ChatElement = '<div class="whatsapp-chat" id="whatsapp-chat-'+i+'"><div class="whatsapp-chat-picture" style="background-image: url('+profilepicture+');"></div><div class="whatsapp-chat-name"><p>'+chat.name+'</p></div><div class="whatsapp-chat-lastmessage"><p>'+LastMessage.message+'</p></div> <div class="whatsapp-chat-lastmessagetime"><p>'+LastMessage.time+'</p></div><div class="whatsapp-chat-unreadmessages unread-chat-id-'+i+'">1</div></div>';
-        
+
         $(".whatsapp-chats").append(ChatElement);
         $("#whatsapp-chat-"+i).data('chatdata', chat);
 
@@ -195,6 +196,7 @@ $(document).on('click', '#whatsapp-openedchat-send', function(e){
             ChatType: "message",
         }));
         $("#whatsapp-openedchat-message").val("");
+        $("div.emojionearea-editor").data("emojioneArea").setText('');
     } else {
         QB.Phone.Notifications.Add("fab fa-whatsapp", "Whatsapp", "You can't send a empty message!", "#25D366", 1750);
     }
@@ -204,9 +206,10 @@ $(document).on('keypress', function (e) {
     if (OpenedChatData.number !== null) {
         if(e.which === 13){
             var Message = $("#whatsapp-openedchat-message").val();
+
             if (Message !== null && Message !== undefined && Message !== "") {
                 var clean = DOMPurify.sanitize(Message , {
-                    ALLOWED_TAGS: [], 
+                    ALLOWED_TAGS: [],
                     ALLOWED_ATTR: []
                 });
                 if (clean == '') clean = 'Hmm, I shouldn\'t be able to do this...'
@@ -241,6 +244,15 @@ $(document).on('click', '#send-image', function(e){
         if(url){
         $.post('https://qb-phone/SendMessage', JSON.stringify({
         ChatNumber: OpenedChatData.number,
+
+
+$(document).on('click', '#send-image', function(e){
+    e.preventDefault();
+    let ChatNumber2 = OpenedChatData.number;
+    $.post('https://qb-phone/TakePhoto', JSON.stringify({}),function(url){
+        if(url){
+        $.post('https://qb-phone/SendMessage', JSON.stringify({
+        ChatNumber: ChatNumber2,
         ChatDate: GetCurrentDateKey(),
         ChatMessage: "Photo",
         ChatTime: FormatMessageTime(),
@@ -256,6 +268,8 @@ $(document).on('click', '#send-image', function(e){
         $(".whatsapp-extra-buttons").css({"display":"block"});
     });
     
+    }))}})
+    QB.Phone.Functions.Close();
 });
 
 QB.Phone.Functions.SetupChatMessages = function(cData, NewChatData) {
@@ -285,10 +299,10 @@ QB.Phone.Functions.SetupChatMessages = function(cData, NewChatData) {
             var ChatDiv = '<div class="whatsapp-openedchat-messages-'+i+' unique-chat"><div class="whatsapp-openedchat-date">'+ChatDate+'</div></div>';
 
             $(".whatsapp-openedchat-messages").append(ChatDiv);
-    
+
             $.each(cData.messages[i].messages, function(index, message){
                 message.message = DOMPurify.sanitize(message.message , {
-                    ALLOWED_TAGS: [], 
+                    ALLOWED_TAGS: [],
                     ALLOWED_ATTR: []
                 });
                 if (message.message == '') message.message = 'Hmm, I shouldn\'t be able to do this...'
@@ -303,6 +317,10 @@ QB.Phone.Functions.SetupChatMessages = function(cData, NewChatData) {
                 else if (message.type == "picture") {
                     MessageElement = '<div class="whatsapp-openedchat-message whatsapp-openedchat-message-'+Sender+'" data-id='+OpenedChatData.number+'><img class="wppimage" src='+message.data.url +'  style=" border-radius:4px; width: 100%; position:relative; z-index: 1; right:1px;height: auto;"></div><div class="whatsapp-openedchat-message-time">'+message.time+'</div>'
                 } 
+                    MessageElement = '<div class="whatsapp-openedchat-message whatsapp-openedchat-message-'+Sender+' whatsapp-shared-location" data-x="'+message.data.x+'" data-y="'+message.data.y+'"><span style="font-size: 1.2vh;"><i class="fas fa-map-marker-alt" style="font-size: 1vh;"></i> Location</span><div class="whatsapp-openedchat-message-time">'+message.time+'</div></div><div class="clearfix"></div>'
+                } else if (message.type == "picture") {
+                    MessageElement = '<div class="whatsapp-openedchat-message whatsapp-openedchat-message-'+Sender+'" data-id='+OpenedChatData.number+'><img class="wppimage" src='+message.data.url +'  style=" border-radius:4px; width: 100%; position:relative; z-index: 1; right:1px;height: auto;"></div><div class="whatsapp-openedchat-message-time">'+message.time+'</div></div><div class="clearfix"></div>'
+                }
                 $(".whatsapp-openedchat-messages-"+i).append(MessageElement);
             });
         });
@@ -352,7 +370,11 @@ $(document).on('click', '.whatsapp-shared-location', function(e){
     }))
 });
 
-var ExtraButtonsOpen = false;
+$(document).on('click', '.wppimage', function(e){
+    e.preventDefault();
+    let source = $(this).attr('src')
+   QB.Screen.popUp(source)
+});
 
 $(document).on('click', '#whatsapp-openedchat-message-extras', function(e){
     e.preventDefault();
