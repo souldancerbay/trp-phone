@@ -1,6 +1,13 @@
 Config = Config or {}
-
+Config.BillingCommissions = { -- This is a percentage (0.10) == 10%
+    mechanic = 0.10
+}
+Config.Linux = false -- True if linux
+Config.TweetDuration = 12 -- How many hours to load tweets (12 will load the past 12 hours of tweets)
 Config.RepeatTimeout = 2000
+Config.BillingCommissions = { -- This is a percentage (0.10) == 10%
+    mechanic = 0.10
+}
 Config.CallRepeats = 10
 Config.OpenPhone = 244
 Config.PhoneApplications = {
@@ -18,7 +25,7 @@ Config.PhoneApplications = {
     ["whatsapp"] = {
         app = "whatsapp",
         color = "#25d366",
-        icon = "fab fa-whatsapp",
+        icon = "fas fa-comment",
         tooltipText = "Whatsapp",
         tooltipPos = "top",
         style = "font-size: 2.8vh";
@@ -30,7 +37,7 @@ Config.PhoneApplications = {
     ["settings"] = {
         app = "settings",
         color = "#636e72",
-        icon = "fa fa-cog",
+        icon = "fa fa-cogs",
         tooltipText = "Settings",
         tooltipPos = "top",
         style = "padding-right: .08vh; font-size: 2.3vh";
@@ -53,7 +60,7 @@ Config.PhoneApplications = {
     ["garage"] = {
         app = "garage",
         color = "#575fcf",
-        icon = "fas fa-warehouse",
+        icon = "fas fa-car",
         tooltipText = "Vehicles",
         job = false,
         blockedjobs = {},
@@ -63,7 +70,7 @@ Config.PhoneApplications = {
     ["mail"] = {
         app = "mail",
         color = "#ff002f",
-        icon = "fas fa-envelope",
+        icon = "fas fa-envelope-open-text",
         tooltipText = "Mail",
         job = false,
         blockedjobs = {},
@@ -73,7 +80,7 @@ Config.PhoneApplications = {
     ["advert"] = {
         app = "advert",
         color = "#ff8f1a",
-        icon = "fas fa-ad",
+        icon = "fas fa-bullhorn",
         tooltipText = "Advertisements",
         job = false,
         blockedjobs = {},
@@ -83,7 +90,7 @@ Config.PhoneApplications = {
     ["bank"] = {
         app = "bank",
         color = "#9c88ff",
-        icon = "fas fa-university",
+        icon = "fas fa-money-check-alt",
         tooltipText = "Bank",
         job = false,
         blockedjobs = {},
@@ -93,7 +100,7 @@ Config.PhoneApplications = {
     ["crypto"] = {
         app = "crypto",
         color = "#004682",
-        icon = "fas fa-chart-pie",
+        icon = "fas fa-coins",
         tooltipText = "Crypto",
         job = false,
         blockedjobs = {},
@@ -133,7 +140,7 @@ Config.PhoneApplications = {
     ["lawyers"] = {
         app = "lawyers",
         color = "#26d4ce",
-        icon = "fas fa-user-tie",
+        icon = "fas fa-briefcase",
         tooltipText = "Services",
         tooltipPos = "bottom",
         job = false,
@@ -141,29 +148,28 @@ Config.PhoneApplications = {
         slot = 12,
         Alerts = 0,
     },
-   --[[ ["store"] = {
-        app = "store",
-        color = "#27ae60",
-        icon = "fas fa-cart-arrow-down",
-        tooltipText = "App Store",
-        tooltipPos = "right",
-        style = "padding-right: .3vh; font-size: 2.2vh";
+    ["gallery"] = {
+        app = "gallery",
+        color = "#AC1D2C",
+        icon = "fas fa-images",
+        tooltipText = "Gallery",
+        tooltipPos = "bottom",
         job = false,
         blockedjobs = {},
-        slot = 14,
+        slot = 16,
         Alerts = 0,
-    },]]
-    -- ["trucker"] = {
-    --     app = "trucker",
-    --     color = "#cccc33",
-    --     icon = "fas fa-truck-moving",
-    --     tooltipText = "Dumbo",
-    --     tooltipPos = "right",
-    --     job = false,
-    --     blockedjobs = {},
-    --     slot = 17,
-    --     Alerts = 0,
-    -- },
+    },
+    ["camera"] = {
+        app = "camera",
+        color = "#AC1D2C",
+        icon = "fas fa-camera",
+        tooltipText = "Camera",
+        tooltipPos = "bottom",
+        job = false,
+        blockedjobs = {},
+        slot = 15,
+        Alerts = 0,
+    },
 }
 Config.MaxSlots = 20
 
@@ -180,7 +186,7 @@ Config.StoreApps = {
         slot = 15,
         Alerts = 0,
         password = true,
-        creator = "Qbus",
+        creator = "QBCore",
         title = "Territory",
     },
 }
