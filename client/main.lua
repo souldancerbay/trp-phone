@@ -1,4 +1,19 @@
+
+RegisterCommand('phone', function()
+    if not PhoneData.isOpen and isLoggedIn then
+        local IsHandcuffed = exports['qb-policejob']:IsHandcuffed()
+        if not IsHandcuffed and not PlayerData.metadata['inlaststand'] and not PlayerData.metadata['isdead'] then
+            OpenPhone()
+        else
+            QBCore.Functions.Notify("Action not available at the moment..", "error")
+        end
+    end
+end)
+
+RegisterKeyMapping('phone', 'Open Phone', 'keyboard', 'M')
+
 local QBCore = exports['qb-core']:GetCoreObject()
+
 local PlayerJob = {}
 local patt = "[?!@#]"
 local frontCam = false
