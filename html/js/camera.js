@@ -12,4 +12,6 @@ function SetupCamera(){
     }
   })
   QB.Phone.Functions.Close();
+function setUpCameraApp(url){
+    $('.phone-home-container').click();
 }
