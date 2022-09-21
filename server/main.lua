@@ -612,6 +612,33 @@ QBCore.Functions.CreateCallback('qb-phone:server:CanTransferMoney', function(sou
     end
 end)
 
+
+QBCore.Functions.CreateCallback('qb-phone:server:PayInvoice', function(source, cb, society, amount, invoiceId, sendercitizenid)
+    local Invoices = {}
+    local Ply = QBCore.Functions.GetPlayer(source)
+    local SenderPly = QBCore.Functions.GetPlayerByCitizenId(sendercitizenid)
+    local billAmount = amount
+    local commission, billAmount
+
+    if Config.BillingCommissions[society] then
+        commission = round(amount * Config.BillingCommissions[society])
+        billAmount = round(amount - (amount * Config.BillingCommissions[society]))
+        SenderPly.Functions.AddMoney('bank', commission)
+        local mailData = {
+            sender = 'Billing Department',
+            subject = 'Commission Received',
+            message = string.format('You received a commission check of $%s when %s %s paid a bill of $%s.', commission, Ply.PlayerData.charinfo.firstname, Ply.PlayerData.charinfo.lastname, amount)
+        }
+        TriggerEvent('qb-phone:server:sendNewMailToOffline', sendercitizenid, mailData)
+    end
+
+    Ply.Functions.RemoveMoney('bank', amount, "paid-invoice")
+    TriggerEvent("qb-bossmenu:server:addAccountMoney", society, billAmount)
+    exports.ghmattimysql:execute('DELETE FROM phone_invoices WHERE id=@id', {['@id'] = invoiceId})
+    local invoices = exports.ghmattimysql:executeSync('SELECT * FROM phone_invoices WHERE citizenid=@citizenid', {['@citizenid'] = Ply.PlayerData.citizenid})
+    if invoices[1] ~= nil then
+        Invoices = invoices
+
 QBCore.Functions.CreateCallback('qb-phone:server:GetCurrentLawyers', function(_, cb)
     local Lawyers = {}
     for _, v in pairs(QBCore.Functions.GetPlayers()) do
@@ -628,6 +655,7 @@ QBCore.Functions.CreateCallback('qb-phone:server:GetCurrentLawyers', function(_,
                 }
             end
         end
+
     end
     cb(Lawyers)
 end)
@@ -670,6 +698,24 @@ RegisterNetEvent('qb-phone:server:DeleteAdvert', function()
     TriggerClientEvent('qb-phone:client:UpdateAdvertsDel', -1, Adverts)
 end)
 
+
+    if biller.PlayerData.job.name == "police" or biller.PlayerData.job.name == 'ambulance' or biller.PlayerData.job.name == 'mechanic' then
+        if billed ~= nil then
+            if biller.PlayerData.citizenid ~= billed.PlayerData.citizenid then
+                if amount and amount > 0 then
+                    exports.ghmattimysql:execute('INSERT INTO phone_invoices (citizenid, amount, society, sender,sendercitizenid) VALUES (@citizenid, @amount, @society, @sender,@sendercitizenid)', {
+                        ['@citizenid'] = billed.PlayerData.citizenid,
+                        ['@amount'] = amount,
+                        ['@society'] = biller.PlayerData.job.name,
+                         ['@sender'] = biller.PlayerData.charinfo.firstname,
+                        ['@sendercitizenid'] = biller.PlayerData.citizenid
+                    })
+                    TriggerClientEvent('qb-phone:RefreshPhone', billed.PlayerData.source)
+                    TriggerClientEvent('QBCore:Notify', source, 'Invoice Successfully Sent', 'success')
+                    TriggerClientEvent('QBCore:Notify', billed.PlayerData.source, 'New Invoice Received')
+                else
+                    TriggerClientEvent('QBCore:Notify', source, 'Must Be A Valid Amount Above 0', 'error')
+
 RegisterNetEvent('qb-phone:server:SetCallState', function(bool)
     local src = source
     local Ply = QBCore.Functions.GetPlayer(src)
@@ -691,6 +737,7 @@ RegisterNetEvent('qb-phone:server:RemoveMail', function(MailId)
             for k, _ in pairs(mails) do
                 if mails[k].button ~= nil then
                     mails[k].button = json.decode(mails[k].button)
+
                 end
             end
         end
@@ -1159,6 +1206,15 @@ QBCore.Commands.Add("setmetadata", "Set Player Metadata (God Only)", {}, false, 
         end
     end
 end, "god")
+
+function round(num, numDecimalPlaces)
+    if numDecimalPlaces and numDecimalPlaces>0 then
+      local mult = 10^numDecimalPlaces
+      return math.floor(num * mult + 0.5) / mult
+    end
+    return math.floor(num + 0.5)
+end
+
 
 QBCore.Commands.Add('bill', 'Bill A Player', {{name = 'id', help = 'Player ID'}, {name = 'amount', help = 'Fine Amount'}}, false, function(source, args)
     local biller = QBCore.Functions.GetPlayer(source)
