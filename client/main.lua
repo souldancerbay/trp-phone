@@ -1128,6 +1128,8 @@ RegisterNUICallback('ClearAlerts', function(data, cb)
 end)
 
 RegisterNUICallback('PayInvoice', function(data, cb)
+    local sender = data.sender
+
     local senderCitizenId = data.senderCitizenId
     local society = data.society
     local amount = data.amount
@@ -1135,6 +1137,7 @@ RegisterNUICallback('PayInvoice', function(data, cb)
     QBCore.Functions.TriggerCallback('qb-phone:server:PayInvoice', function(CanPay, Invoices)
         if CanPay then PhoneData.Invoices = Invoices end
         cb(CanPay)
+    end,  society, amount, invoiceId, senderCitizenId)
     end, society, amount, invoiceId, senderCitizenId)
     TriggerServerEvent('qb-phone:server:BillingEmail', data, true)
 end)
