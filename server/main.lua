@@ -422,6 +422,55 @@ QBCore.Functions.CreateCallback('qb-phone:server:GetPicture', function(_, cb, nu
     end
 end)
 
+RegisterServerEvent('qb-phone:server:sendNewEventMail')
+AddEventHandler('qb-phone:server:sendNewEventMail', function(citizenid, mailData)
+		local Player = QBCore.Functions.GetPlayerByCitizenId(citizenid)
+    if mailData.button == nil then
+        exports.ghmattimysql:execute('INSERT INTO player_mails (`citizenid`, `sender`, `subject`, `message`, `mailid`, `read`) VALUES (@citizenid, @sender, @subject, @message, @mailid, @read)', {
+            ['@citizenid'] = citizenid,
+            ['@sender'] = mailData.sender,
+            ['@subject'] = mailData.subject,
+            ['@message'] = mailData.message,
+            ['@mailid'] = GenerateMailId(),
+            ['@read'] = 0
+        })
+    else
+        exports.ghmattimysql:execute('INSERT INTO player_mails (`citizenid`, `sender`, `subject`, `message`, `mailid`, `read`, `button`) VALUES (@citizenid, @sender, @subject, @message, @mailid, @read, @button)', {
+            ['@citizenid'] = citizenid,
+            ['@sender'] = mailData.sender,
+            ['@subject'] = mailData.subject,
+            ['@message'] = mailData.message,
+            ['@mailid'] = GenerateMailId(),
+            ['@read'] = 0,
+            ['@button'] = json.encode(mailData.button)
+        })
+    end
+    SetTimeout(200, function()
+        local mails = exports.ghmattimysql:executeSync('SELECT * FROM player_mails WHERE citizenid=@citizenid ORDER BY `date` ASC', {['@citizenid'] = citizenid})
+        if mails[1] ~= nil then
+            for k, v in pairs(mails) do
+                if mails[k].button ~= nil then
+                    mails[k].button = json.decode(mails[k].button)
+                end
+            end
+        end
+
+        TriggerClientEvent('qb-phone:client:UpdateMails', Player.PlayerData.source, mails)
+    end)
+end)
+
+RegisterServerEvent('qb-phone:server:ClearButtonData')
+AddEventHandler('qb-phone:server:ClearButtonData', function(mailId)
+    local src = source
+    local Player = QBCore.Functions.GetPlayer(src)
+    exports.ghmattimysql:execute('UPDATE player_mails SET button=@button WHERE mailid=@mailid AND citizenid=@citizenid', {['@button'] = '', ['@mailid'] = mailId, ['@citizenid'] = Player.PlayerData.citizenid})
+    SetTimeout(200, function()
+        local mails = exports.ghmattimysql:executeSync('SELECT * FROM player_mails WHERE citizenid=@citizenid ORDER BY `date` ASC', {['@citizenid'] = Player.PlayerData.citizenid})
+        if mails[1] ~= nil then
+            for k, v in pairs(mails) do
+                if mails[k].button ~= nil then
+                    mails[k].button = json.decode(mails[k].button)
+                end
 QBCore.Functions.CreateCallback('qb-phone:server:FetchResult', function(_, cb, search)
     search = escape_sqli(search)
     local searchData = {}
